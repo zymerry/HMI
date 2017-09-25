@@ -1,9 +1,16 @@
 QT      +=  webkit network
 HEADERS =   mainwindow.h \
-            fancy.h
+            hard_sdk.h
 SOURCES =   main.cpp \
             mainwindow.cpp \
-			fancy.cpp
+			hard_sdk.cpp\
+			gpio.c \
+            serial.c \
+            mic.c \
+            audio.c \
+            key.c \
+            can.c \
+            file.c 
 
 # install
 target.path = $$[QT_INSTALL_EXAMPLES]/webkit/fancybrowser

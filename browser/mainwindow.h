@@ -40,7 +40,7 @@
 
 #include <QtGui>
 #include <QKeyEvent>
-#include "fancy.h"
+#include "hard_sdk.h"
 
 class QWebView;
 
@@ -61,5 +61,5 @@ private:
 //    QString jQuery;
     QWebView *view;
 
-	Fancy* fancy;
+	Hard* fancy;
 };

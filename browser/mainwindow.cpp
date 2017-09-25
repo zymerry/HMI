@@ -60,8 +60,8 @@ MainWindow::MainWindow(const QUrl& url)
     view->page()->installEventFilter(this);
     view->page()->mainFrame()->installEventFilter(this);
 
-	Fancy* fancy = new Fancy( view );
-    fancy->setWebView( view );
+	Hard* hard = new Hard( view );
+    hard->setWebView( view );
 
 	QWebSettings *settings = view->page()->settings();
 	settings->setAttribute(QWebSettings::JavascriptEnabled, true);
