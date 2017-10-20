@@ -75,6 +75,28 @@ QString can_read(int size);
 int can_write(int size,QString str);
 void can_close();
 /*******************************  end can *************************/
+
+/****************************  audio-encode  **********************/
+int encode_init();
+QString encode(QString src);
+void close_encode();
+/***************************  audio-encode end  *******************/
+
+/****************************  audio-decode  **********************/
+void DestroyAACDecoder();
+int InitAACDecoder(int nSamplesPerSec, int nChannels);
+QString Decoder(int nlen, QString pszAAC);
+int get_pnOutLen();
+/***************************  audio-decode end  *******************/
+
+/*******************************  file  ***************************/
+int file_open(QString file_name);
+int file_write(int size, QString src);
+QString file_read(int size);
+int file_close(int fd);
+QString getlocaltime();
+/*****************************  file end  *************************/
+
 private slots: 
 	void attachObject();
     void onRecvSocket();

@@ -8,28 +8,22 @@
 
 static int flag;
 
-int _open()
+int _open(char *file_name)
 {
     int fd;
-    //fd = open("/etc/fifo", O_RDWR);
-    fd = open("/etc/file", O_RDWR|O_CREAT|O_TRUNC);
+    fd = open(file_name, O_RDWR|O_CREAT|O_TRUNC);
     if(fd < 0)
     {
         perror("in C open file:");
         return -1;
     }
-    printf("fifo open successful\n");
     return fd;
 }
 
 int _write(int fd, char *buf, int file_size)
 {
-    int size, ret;
-
-    size = strlen(buf);
-    if (file_size != size)
-        size = file_size;
-    ret = write(fd, buf, size);
+    int ret;
+    ret = write(fd, buf, file_size);
     if (ret < 0)
     {
         printf("file write error!\n");
@@ -70,4 +64,9 @@ int _read(int fd, char *buf, int size)
         printf("%s", data);
         sleep(500);
     }
+}
+
+void _close(int fd)
+{
+    close(fd);
 }

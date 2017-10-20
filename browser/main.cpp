@@ -68,6 +68,7 @@ int main(int argc, char * argv[])
     font.setFamily(("wenquanyi"));
     app.setFont(font);
 
+    QCoreApplication::addLibraryPath("/mnt/nand1-2/plugins");
 //    browser->show();
     browser->showFullScreen();
     return app.exec();

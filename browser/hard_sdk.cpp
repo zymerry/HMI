@@ -2,6 +2,7 @@
 #include <qwebview.h> 
 #include <qdebug.h>
 #include <qwebframe.h>
+#include <QDateTime>
 #include <QFile>
 #include <QFileInfo>
 #include <string>
@@ -232,7 +233,7 @@ int Hard::mic_open()
     //以C和QFile两种方式打开"/etc/file"文件
     //打开文件的目的是通过文件来完成存储着二进制字符串的转换
     //char * 到 Qstring 和 Qstring 到 char *
-	file_fd = _open();
+	file_fd = _open("/etc/file");
 	if (!file.open(QIODevice::ReadOnly|QIODevice::Text))       
 	{
 		printf("Can't open the file!\n");
@@ -347,9 +348,15 @@ int Hard::can_setopt(int rate, int id, int mask)
 }
 QString Hard::can_read(int size)
 {
+    int ret;
     char buf[16];
     memset(buf, 0, 16);
-    _read(can_fd, buf, size);
+    ret = _can_read(can_fd, buf, size);
+    if (ret == 0)
+    {
+        return NULL;
+    }
+    buf[8]=0;
     QString qstr = QString(QLatin1String(buf));
     return qstr;
 }
@@ -359,14 +366,157 @@ int Hard::can_write(int size, QString str)
     char *buf=NULL;
     QByteArray ba = str.toLatin1();
     buf = ba.data();
-    printf("buf:%s\n", buf);
     return _can_write(can_fd, buf, size);
 }
 void Hard::can_close()
 {
     _can_close(can_fd);
 }
+/***************************  can end  ****************************/
 
+/************************  audio-encode  **************************/
+static int en_fd;
+static QFile en_file("/etc/en_file");
+static QTextStream en(&en_file);
+int Hard::encode_init()
+{
+    //以C和QFile两种方式打开"/etc/en_file"文件
+    //打开文件的目的是通过文件来完成存储着二进制字符串的转换
+    //char * 到 Qstring 和 Qstring 到 char *
+	en_fd = _open("/etc/en_file");
+	if (!en_file.open(QIODevice::ReadOnly|QIODevice::Text))       
+	{
+		printf("Can't open the file!\n");
+        return -1;
+	}
+    return 0;
+}
+QString Hard::encode(QString src)
+{
+    int wr_size;        //实际写入的数据大小
+    int en_size;        //编码后音频数据的大小
+    char dest[2048];    //编码后的音频数据
+    
+    //将Qstring数据转换为char *
+    char *buf=NULL;
+    QByteArray ba = src.toLatin1();
+    buf = ba.data();
+    //buf存放编码前的音频数据
+
+    //将pcm转化为aac
+    //输入buf-pcm
+    //输出dest-aac
+    en_size = 0;
+    memset(dest, 0, 2048);
+    en_size = _encode(buf, dest);
+    //将char *转换为Qstring
+    lseek(en_fd, SEEK_SET, 0);
+    wr_size = _write(en_fd, dest, en_size);
+    en.seek(0);
+	QString dst = en.read(en_size);
+    return dst;
+}
+void Hard::close_encode()
+{
+    _close(en_fd);
+    en_file.close();
+}
+/*********************  audio-encode end  *************************/
+
+/*************************  audio-decode  *************************/
+static int de_fd;
+static QFile de_file("/etc/de_file");
+static QTextStream de(&de_file);
+void Hard::DestroyAACDecoder()
+{
+    _close(de_fd);
+    de_file.close();
+    _DestroyAACDecoder();
+}
+
+int Hard::InitAACDecoder(int nSamplesPerSec, int nChannels)
+{
+    //以C和QFile两种方式打开"/etc/en_file"文件
+    //打开文件的目的是通过文件来完成存储着二进制字符串的转换
+    //char * 到 Qstring 和 Qstring 到 char *
+	de_fd = _open("/etc/de_file");
+	if (!de_file.open(QIODevice::ReadOnly|QIODevice::Text))       
+	{
+		printf("Can't open the file!\n");
+        return -1;
+	}
+    _InitAACDecoder(nSamplesPerSec, nChannels);
+}
+
+//int Hard::Decoder(unsigned char *pszAAC, unsigned int nLen, char *pszOut, int *pnOutLen)
+int pnOutLen;
+QString Hard::Decoder(int nlen, QString pszAAC)
+{
+    int wr_size = 0;
+    int pcm_len = 102400;
+    char pszOut[1024*1024];
+    memset(pszOut, 0, 1024*1024);
+
+    //将Qstring数据转换为char *
+    char *buf=NULL;
+    QByteArray ba = pszAAC.toLatin1();
+    buf = ba.data();
+    pnOutLen = _Decoder(buf, nlen, pszOut, &pcm_len);
+    printf("pcm_len: %d\n", pcm_len);
+    
+    //将char *转换为Qstring
+    lseek(de_fd, SEEK_SET, 0);
+    wr_size = _write(de_fd, pszOut, pcm_len);
+    de.seek(0);
+	QString dst = de.read(pcm_len);
+    return dst;
+
+}
+int Hard::get_pnOutLen()
+{
+    return pnOutLen;
+}
+/*********************  audio-decode end  *************************/
+
+/*************************  file  *********************************/
+static int ffd;
+int Hard::file_open(QString file_name)
+{
+    //将Qstring数据转换为char *
+    char *buf=NULL;
+    QByteArray ba = file_name.toLatin1();
+    buf = ba.data();
+    
+    ffd = _open(buf);
+    return ffd;
+}
+int Hard::file_write(int size, QString src)
+{
+    //将Qstring数据转换为char *
+    char *buf=NULL;
+    QByteArray ba = src.toLatin1();
+    buf = ba.data();
+    
+    _write(ffd, buf, size);
+}
+
+QString Hard::file_read(int size)
+{
+    char data[1024*1024];
+    memset(data, 0, 1024*1024);
+
+}
+int Hard::file_close(int fd)
+{
+    _close(fd);
+}
+QString Hard::getlocaltime()
+{
+    QDateTime current_date_time =QDateTime::currentDateTime();
+    QString current_date =current_date_time.toString("yyyy.MM.dd hh:mm:ss.zzz ddd");
+    return current_date;
+}
+/**********************  file  end  *******************************/
 Hard::Hard( QObject *parent ) 
 	: QObject( parent ) 
 {

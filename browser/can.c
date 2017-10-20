@@ -38,7 +38,7 @@ int _can_open()
     fd = open("/dev/mcp2515", O_RDWR);
     if (fd < 0) {
         perror("MCP2515 open");
-        exit(1);
+        return -1;
     }
 	
 	return fd;
@@ -66,17 +66,17 @@ int _can_setopt(int fd, int rate, int id, int mask)
 			rate != 125 && rate != 250 && rate != 500)) 
 	{
 		printf("The param rate:[%d] error\n", rate);
-		exit(1);
+		return -1;
 	}
 	if (id < 0 || id >= 2048)
 	{
 		printf("The param id:[%d] error\n", id);
-		exit(1);
+		return -1;
 	}
 	if (mask < 0 || mask >= 2048)
 	{
 		printf("The param mask:[%d] error!\n", mask);
-		exit(1);
+		return -1;
 	}
 	
  	        // 设置波特率
@@ -136,7 +136,7 @@ int _can_read(int fd, char *buf, int size)
 	}
 	if (size < 0 || size > 8)
 	{
-		printf("the size is %d error!\n");
+		printf("the size is %d error!\n", size);
 		return -1;
 	}
 	
@@ -145,7 +145,7 @@ int _can_read(int fd, char *buf, int size)
 	memset(&cada, 0, ca_len);
 	ret = read(fd, &cada, 16);
 	memcpy(buf, cada.data, strlen(cada.data));
-	return strlen(cada.data);
+	return ret;
 }
 
 int _can_write(int fd, char *buf, int size)
