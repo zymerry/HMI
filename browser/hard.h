@@ -31,7 +31,7 @@ void _mic_close(int dsp_fd, int mixer_fd);
 
 /*********************************  audio  ************************/
 int _audio_open(int *dsp_fd, int *mixer_fd);
-int _audio_init_frag(int dsp_fd);
+int _audio_init_frag(int dsp_fd, int frag_t);
 int _audio_setdef(int dsp_fd, int mixer_fd);
 int _audio_setrate(int dsp_fd, int samplerate);
 int _audio_setsound(int mixer_fd, int sound);

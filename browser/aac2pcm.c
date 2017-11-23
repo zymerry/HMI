@@ -98,10 +98,12 @@ int _Decoder(char *pszAAC, unsigned int nLen, char *pszOut, int *pnOutLen)
     *pnOutLen        = 0;  
 
 	// 进行解码, 第一次解码出错，为正常现象
+    memset(&hInfo, 0, sizeof(hInfo));
     out = NeAACDecDecode(m_hAACDecoder, &hInfo, pInputPtr, nLen);
 
     if (hInfo.error != 0 || hInfo.samples == 0)  
     {  	
+        printf("hInfo.error: %d  hInfo.samples:%d\n", hInfo.error, hInfo.samples);
     	printf("NeAACDecDecode failed!\n");  
         return nLen;  
     }

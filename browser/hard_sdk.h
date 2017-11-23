@@ -60,7 +60,7 @@ void mic_close();
 
 /*******************************  audio  **************************/
 int audio_open();
-int audio_init_frag();
+int audio_init_frag(int frag);
 int audio_setdef();
 int audio_setrate(int samplerate);
 int audio_setsound(int sound);
@@ -94,6 +94,8 @@ int file_open(QString file_name);
 int file_write(int size, QString src);
 QString file_read(int size);
 int file_close(int fd);
+int file_open_p(QString file_name);
+QString file_read_p(int size);
 QString getlocaltime();
 /*****************************  file end  *************************/
 

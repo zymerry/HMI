@@ -5,9 +5,9 @@
 
 #define ENCFRAME_BUFSIZE		1024
 
-#define AACRECORDER_BIT_RATE    64000   // 64K bps
+#define AACRECORDER_BIT_RATE    15000   // 64K bps
 #define AACRECORDER_CHANNEL_NUM 1       // Mono
-#define AACRECORDER_QUALITY     45      // 1 ~ 999
+#define AACRECORDER_QUALITY     90      // 1 ~ 999
 #define AACRECORDER_SAMPLE_RATE 8000   // 8K Hz
 
 /* 编码器 */

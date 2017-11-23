@@ -36,13 +36,13 @@ int _mic_open(int *dsp_fd, int *mixer_fd)
 	*mixer_fd = 0;
 	
 	//open the device and return the file descriptor
-	*dsp_fd = open("/dev/dsp1",O_RDONLY,0);
+	*dsp_fd = open("/dev/dsp1",O_RDONLY|O_NONBLOCK);
 	if (*dsp_fd < 0)
 	{
 		return -1;
 	}
 
-	*mixer_fd = open("/dev/mixer1", O_WRONLY);
+	*mixer_fd = open("/dev/mixer1", O_WRONLY|O_NONBLOCK);
 	if (*mixer_fd < 0)
 	{
         return -1;

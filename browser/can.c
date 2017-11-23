@@ -35,7 +35,7 @@ int _can_open()
 {
     int fd = 0;
 	// 打开CAN设备文件
-    fd = open("/dev/mcp2515", O_RDWR);
+    fd = open("/dev/mcp2515", O_RDWR|O_NONBLOCK);
     if (fd < 0) {
         perror("MCP2515 open");
         return -1;
@@ -144,7 +144,7 @@ int _can_read(int fd, char *buf, int size)
 	ca_len = sizeof(CanData);
 	memset(&cada, 0, ca_len);
 	ret = read(fd, &cada, 16);
-	memcpy(buf, cada.data, strlen(cada.data));
+	memcpy(buf, cada.data, size);
 	return ret;
 }
 

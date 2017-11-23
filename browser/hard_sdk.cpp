@@ -296,10 +296,10 @@ int Hard::audio_open()
     //打开扬声器设备
     return _audio_open(&audio_dsp_fd, &audio_mixer_fd);
 }
-int Hard::audio_init_frag()
+int Hard::audio_init_frag(int frag)
 {
     //获得frag
-    return _audio_init_frag(audio_dsp_fd);
+    return _audio_init_frag(audio_dsp_fd, frag);
 }
 int Hard::audio_setdef()
 {
@@ -338,8 +338,19 @@ void Hard::audio_close()
 
 /*****************************  can  ******************************/
 int static can_fd;
+static int can_file;
+static QFile cfile("/etc/can_file");
+static QTextStream cf(&cfile);
 int Hard::can_open()
 {
+    //以C和QFile两种方式打开"/etc/can_file"文件
+    //打开文件的目的是通过文件来完成存储着二进制字符串的转换
+    //char * 到 Qstring 和 Qstring 到 char *
+	can_file = _open("/etc/can_file");
+	if (!cfile.open(QIODevice::ReadOnly))       
+	{
+		printf("Can't open the file!\n");
+	}
     can_fd = _can_open();
 }
 int Hard::can_setopt(int rate, int id, int mask)
@@ -356,8 +367,13 @@ QString Hard::can_read(int size)
     {
         return NULL;
     }
-    buf[8]=0;
-    QString qstr = QString(QLatin1String(buf));
+    //将char *转换为Qstring
+    lseek(can_file, SEEK_SET, 0);
+    ret = _write(can_file, buf, size);
+    cf.seek(0);
+	QString qstr = cf.read(size);
+
+    //QString qstr = QString(QLatin1String(buf));
     return qstr;
 }
 int Hard::can_write(int size, QString str)
@@ -440,7 +456,7 @@ int Hard::InitAACDecoder(int nSamplesPerSec, int nChannels)
     //打开文件的目的是通过文件来完成存储着二进制字符串的转换
     //char * 到 Qstring 和 Qstring 到 char *
 	de_fd = _open("/etc/de_file");
-	if (!de_file.open(QIODevice::ReadOnly|QIODevice::Text))       
+	if (!de_file.open(QIODevice::ReadOnly))       
 	{
 		printf("Can't open the file!\n");
         return -1;
@@ -480,13 +496,29 @@ int Hard::get_pnOutLen()
 
 /*************************  file  *********************************/
 static int ffd;
+static QFile file_tmp("/mnt/nand1-2/123");
+static QTextStream file_test(&file_tmp);
+int Hard::file_open_p(QString file_name)
+{
+	//if (!file_tmp.open(QIODevice::ReadOnly|QIODevice::Text))       
+	if (!file_tmp.open(QIODevice::ReadOnly))       
+	{
+
+		printf("Can't open the file!\n");
+        return -1;
+	}
+    
+}
+QString Hard::file_read_p(int size)
+{
+    QString rd_str = file_test.read(size);
+    return rd_str;
+}
 int Hard::file_open(QString file_name)
 {
-    //将Qstring数据转换为char *
     char *buf=NULL;
     QByteArray ba = file_name.toLatin1();
     buf = ba.data();
-    
     ffd = _open(buf);
     return ffd;
 }

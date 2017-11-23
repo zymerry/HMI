@@ -38,12 +38,12 @@ static int frag;
 int _audio_open(int *dsp_fd, int *mixer_fd)
 {
 	//open the file descriptor
-	*dsp_fd = open("/dev/dsp", O_RDWR);
+	*dsp_fd = open("/dev/dsp", O_RDWR|O_NONBLOCK);
 	if (*dsp_fd < 0)
 	{
 		return -1;
 	}
-	*mixer_fd = open("/dev/mixer", O_RDWR);
+	*mixer_fd = open("/dev/mixer", O_RDWR|O_NONBLOCK);
 	if (*mixer_fd < 0)
 	{
 		return -1;
@@ -61,16 +61,38 @@ int _audio_open(int *dsp_fd, int *mixer_fd)
 *	@see     
 *   @note    
 */
-int _audio_init_frag(int dsp_fd)
+int _audio_init_frag(int dsp_fd, int frag_t)
 {
 	//check the param
+    if (!(frag_t==1||frag_t==2||frag_t==3||frag_t==4))
+    {
+        return -1;
+    }
 	if (dsp_fd < 0)
 	{
 		return -1;
 	}
 	//get the frag
+    frag = frag_t;
+    int bquart = 0;
+    switch (frag_t)
+    {
+        case 1:
+            bquart = 0x000a;
+        case 2:
+            bquart = 0x000b;
+        case 3:
+            bquart = 0x000c;
+        case 4:
+            bquart = 0x000d;
+        default:
+            bquart = 0x000a;
+    }
+
+    frag = (0x0002 << 16) + bquart;
+    ioctl(dsp_fd, SNDCTL_DSP_SETFRAGMENT, &frag);
 	ioctl(dsp_fd, SNDCTL_DSP_GETBLKSIZE, &frag);
-	 
+
 	return frag;
 }
 
@@ -88,7 +110,7 @@ int _audio_setdef(int dsp_fd, int mixer_fd)
 {
 	int oss_format, channels, ret;
 	//set samplerate and sound with default of nature
-	int samplerate = 16000;
+	int samplerate = 8000;
 	int volume = 0x50;
 	
 	//check the param dsp_fd and param mixer_fd
@@ -102,7 +124,7 @@ int _audio_setdef(int dsp_fd, int mixer_fd)
 	ioctl(dsp_fd, SNDCTL_DSP_SETFMT, &oss_format);
 
 	//set channels
-	channels = 1;
+	channels = 2;
 	ioctl(dsp_fd, SNDCTL_DSP_CHANNELS, &channels);
 
 	//set the samplerate-16000 and the sound-0x50
@@ -136,7 +158,7 @@ int _audio_setrate(int dsp_fd, int samplerate)
 	int ret;
 
 	//check the param
-	if (!(samplerate==800 || samplerate==11025 || samplerate==16000 ||
+	if (!(samplerate==8000 || samplerate==11025 || samplerate==16000 ||
 		samplerate==22050 || samplerate==24000 || samplerate==32000 ||
 		samplerate==44100 || samplerate==48000))
 	{
@@ -223,6 +245,8 @@ int _audio_write(int dsp_fd, char *buf, int write_size)
 	audio_buf_info info;
 	do
 	{
+        printf("in while..info.bytes:[%d].....frag:[%d]....\n", \ 
+                info.bytes, frag);
 		ioctl(dsp_fd, SNDCTL_DSP_GETOSPACE, &info);
 		usleep(100);
 	}
